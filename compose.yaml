@@ -48,6 +48,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "http://localhost:8080/healthcheck"]
     restart: unless_stopped
 
 volumes:

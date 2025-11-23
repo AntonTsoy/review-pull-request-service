@@ -1,62 +1,29 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
-	"time"
 
-	_ "github.com/AntonTsoy/subscription-service/docs"
-
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi/v5"
-	httpSwagger "github.com/swaggo/http-swagger"
-
-	"github.com/AntonTsoy/subscription-service/internal/config"
-	"github.com/AntonTsoy/subscription-service/internal/database"
-	"github.com/AntonTsoy/subscription-service/internal/repository"
-	"github.com/AntonTsoy/subscription-service/internal/service"
-	"github.com/AntonTsoy/subscription-service/internal/transport/handler"
-	"github.com/AntonTsoy/subscription-service/internal/transport/logger"
+	"github.com/AntonTsoy/reveiw-pull-request-service/internal/config"
 )
 
-// @title           Subscription Service API
-// @version         1.0
-// @description     REST API для управления подписками
-// @BasePath        /
-// @host            localhost:8080
-// @schemes         http
 func main() {
-	cfg := config.Load()
-
-	db, err := database.New(cfg)
+	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("ошибка базы данных: %v", err)
-	}
-	defer db.Close()
-
-	if err = db.HealthCheck(); err != nil {
-		log.Fatalf("не удалось открыть соединение c базой данных: %v", err)
+		log.Fatal(err)
 	}
 
-	subsRepo := repository.NewSubsRepo(db.DB())
+	fmt.Printf("%+v", cfg)
 
-	subsService := service.NewSubsService(subsRepo)
+	// TODO: squirrel + pgx database
 
-	subsHandler := handler.NewSubsHandler(subsService)
+	// TODO: repository
 
-	r := chi.NewRouter()
-	r.Use(logger.Logger)
-	r.Use(middleware.Timeout(10 * time.Second))
+	// TODO: service
 
-	r.Post("/subscriptions", subsHandler.CreateSubscription)
-	r.Get("/subscriptions/{id}", subsHandler.GetSubscription)
-	r.Get("/subscriptions", subsHandler.GetAllSubscriptions)
-	r.Put("/subscriptions/{id}", subsHandler.UpdateSubscription)
-	r.Delete("/subscriptions/{id}", subsHandler.DeleteSubscription)
-	r.Get("/subscriptions/{start}/{end}/total-cost", subsHandler.TotalServiceSubscriptionsCost)
+	// TODO: Fiber http handlers
 
-	r.Get("/swagger/*", httpSwagger.WrapHandler)
+	// TODO: start service
 
-	log.Println("Server started at http://localhost:8080/swagger/index.html")
-	http.ListenAndServe(":8080", r)
+	// TODO: graceful shutdown
 }

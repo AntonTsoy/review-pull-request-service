@@ -1,11 +1,20 @@
-CREATE TABLE IF NOT EXISTS subscriptions (
-    id SERIAL PRIMARY KEY,
-    service_name TEXT NOT NULL,
-    price INTEGER NOT NULL,
-    user_id UUID NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE
+CREATE TABLE IF NOT EXISTS teams (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+    name VARCHAR(100) UNIQUE NOT NULL,
 );
 
-CREATE INDEX idx_subs_service_dates
-    ON subscriptions (start_date, end_date, user_id, service_name);
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(16) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    team_id INTEGER REFERENCES teams (id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+);
+
+CREATE TYPE IF NOT EXISTS status_enum AS ENUM('OPEN', 'MERGED');
+
+CREATE TABLE IF NOT EXISTS pull_requests (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    author_id VARCHAR(16) NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
+    status status_enum NOT NULL,
+);

@@ -1,3 +1,5 @@
-DROP INDEX IF EXISTS idx_subs_user_service_dates;
+DROP TABLE IF EXISTS pull_requests;
 
-DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS users;
+
+DROP TABLE IF EXISTS teams;
