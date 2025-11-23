@@ -12,8 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_team_id ON users (team_id);
 
-CREATE TYPE IF NOT EXISTS status_enum AS ENUM('OPEN', 'MERGED');
-
 CREATE TABLE IF NOT EXISTS pull_requests (
     id VARCHAR(50) PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
