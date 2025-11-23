@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -31,7 +30,7 @@ func main() {
 		log.Fatalf("failed to open connection with database: %v", err)
 	}
 
-	fmt.Printf("DB connection opened!")
+	log.Println("DB connection opened!")
 
 	// TODO: repository
 
