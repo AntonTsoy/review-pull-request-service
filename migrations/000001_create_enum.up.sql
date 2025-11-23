@@ -1,1 +1,1 @@
-CREATE TYPE IF NOT EXISTS status_enum AS ENUM('OPEN', 'MERGED');
+CREATE TYPE status_enum AS ENUM('OPEN', 'MERGED');

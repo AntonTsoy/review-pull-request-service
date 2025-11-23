@@ -1,1 +1,1 @@
-DROP TYPE IF EXISTS status_enum;
+DROP TYPE status_enum CASCADE;
