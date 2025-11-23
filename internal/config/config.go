@@ -24,7 +24,7 @@ type Config struct {
 
 func Load() (*Config, error) {
 	cfg := &Config{}
-	if err := cleanenv.ReadConfig(".env", cfg); err != nil {
+	if err := cleanenv.ReadEnv(cfg); err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
