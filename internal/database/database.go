@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AntonTsoy/reveiw-pull-request-service/internal/config"
+	"github.com/AntonTsoy/review-pull-request-service/internal/config"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,6 +33,10 @@ func New(ctx context.Context, dbConfig *config.Config) (*Database, error) {
 
 func (db *Database) Pool() *pgxpool.Pool {
 	return db.pool
+}
+
+func (db *Database) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
+	return db.pool.BeginTx(ctx, txOptions)
 }
 
 func (db *Database) HealthCheck(ctx context.Context) error {
