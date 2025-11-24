@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/AntonTsoy/review-pull-request-service/internal/api"
+	"github.com/AntonTsoy/review-pull-request-service/internal/transport/http/api"
 	"github.com/AntonTsoy/review-pull-request-service/internal/service"
 )
 

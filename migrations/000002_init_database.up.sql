@@ -16,8 +16,14 @@ CREATE TABLE IF NOT EXISTS pull_requests (
     id VARCHAR(50) PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     author_id VARCHAR(36) NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
-    status status_enum NOT NULL,
-    merged_at TIMESTAMP
+    status status_enum NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    merged_at TIMESTAMP,
+
+    CONSTRAINT valid_merged_at CHECK (
+        (status = 'OPEN' AND merged_at IS NULL) OR
+        (status = 'MERGED' AND merged_at IS NOT NULL)
+    )
 );
 
 CREATE TABLE IF NOT EXISTS reviewers (

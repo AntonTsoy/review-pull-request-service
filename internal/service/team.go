@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AntonTsoy/review-pull-request-service/internal/api"
+	"github.com/AntonTsoy/review-pull-request-service/internal/transport/http/api"
 	"github.com/AntonTsoy/review-pull-request-service/internal/apperrors"
 	"github.com/AntonTsoy/review-pull-request-service/internal/database"
 	"github.com/AntonTsoy/review-pull-request-service/internal/repository"
@@ -44,7 +44,7 @@ func (s *TeamService) CreateTeam(ctx context.Context, team api.Team) error {
 
 	teamID, err = s.teamRepo.Create(ctx, tx, team.TeamName)
 	if err != nil {
-		return fmt.Errorf("failed to create team: %w", err)
+		return err
 	}
 
 	for _, member := range team.Members {
@@ -52,13 +52,13 @@ func (s *TeamService) CreateTeam(ctx context.Context, team api.Team) error {
 		flag, err = s.userRepo.Exists(ctx, tx, member.UserId)
 		if err == nil && flag {
 			if err = s.userRepo.Update(ctx, tx, teamID, &member); err != nil {
-				return fmt.Errorf("failed to update user: %w", err)
+				return err
 			}
 			continue
 		}
 
 		if err = s.userRepo.Create(ctx, tx, teamID, &member); err != nil {
-			return fmt.Errorf("failed to create user: %w", err)
+			return err
 		}
 	}
 
@@ -69,32 +69,16 @@ func (s *TeamService) CreateTeam(ctx context.Context, team api.Team) error {
 	return nil
 }
 
-func (s *TeamService) GetTeam(ctx context.Context, teamName string) (*api.Team, error) {
-	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
+func (s *TeamService) GetTeam(ctx context.Context, teamName string) ([]api.TeamMember, error) {
+	teamID, err := s.teamRepo.GetByName(ctx, s.db.Pool(), teamName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, err
 	}
 
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
-
-	teamID, err := s.teamRepo.GetByName(ctx, tx, teamName)
+	members, err := s.userRepo.GetByTeamID(ctx, s.db.Pool(), teamID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get team id: %w", err)
+		return nil, err
 	}
 
-	members, err := s.userRepo.GetByTeamID(ctx, tx, teamID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get team members: %w", err)
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return &api.Team{
-		TeamName: teamName,
-		Members: members,
-	}, nil
+	return members, nil
 }

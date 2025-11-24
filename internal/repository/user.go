@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/AntonTsoy/review-pull-request-service/internal/api"
+	"github.com/AntonTsoy/review-pull-request-service/internal/transport/http/api"
 	"github.com/AntonTsoy/review-pull-request-service/internal/apperrors"
 	"github.com/AntonTsoy/review-pull-request-service/internal/models"
 
@@ -62,7 +62,7 @@ func (r *UserRepository) Exists(ctx context.Context, db DBTX, id string) (bool, 
         return false, fmt.Errorf("query row: %w", err)
     }
 
-    return true, nil
+    return exists, nil
 }
 
 func (r *UserRepository) GetByTeamID(ctx context.Context, db DBTX, teamID int) ([]api.TeamMember, error) {
@@ -99,6 +99,42 @@ func (r *UserRepository) GetByTeamID(ctx context.Context, db DBTX, teamID int) (
 	return teamMembers, nil
 }
 
+func (r *UserRepository) GetActiveTeammates(ctx context.Context, db DBTX, exceptID string) ([]api.TeamMember, error) {
+	sql, args, err := r.builder.
+		Select("u1.id", "u1.name", "u1.is_active").
+		From("users u1").
+		Join("users u2 ON u1.team_id = u2.team_id").
+		Where(squirrel.Eq{"u2.user_id": exceptID}).
+		Where(squirrel.NotEq{"u1.user_id": exceptID}).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("build query: %w", err)
+	}
+
+	rows, err := db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("execute query: %w", err)
+	}
+	defer rows.Close()
+
+	var teammates []api.TeamMember
+	for rows.Next() {
+		var member api.TeamMember
+		err := rows.Scan(&member.UserId, &member.Username, &member.IsActive)
+		if err != nil {
+			return nil, fmt.Errorf("scan row: %w", err)
+		}
+		teammates = append(teammates, member)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return teammates, nil
+}
+
 func (r *UserRepository) Update(ctx context.Context, db DBTX, teamID int, user *api.TeamMember) error {
 	sql, args, err := r.builder.
 		Update("users").
@@ -124,7 +160,7 @@ func (r *UserRepository) Update(ctx context.Context, db DBTX, teamID int, user *
 	return nil
 }
 
-func (r *UserRepository) SetActive(ctx context.Context, db DBTX, id string, active bool) (models.User, error) {
+func (r *UserRepository) UpdateIsActive(ctx context.Context, db DBTX, id string, active bool) (*models.User, error) {
 	sql, args, err := r.builder.
 		Update("users").
 		Set("is_active", active).
@@ -133,10 +169,10 @@ func (r *UserRepository) SetActive(ctx context.Context, db DBTX, id string, acti
 		ToSql()
 
 	if err != nil {
-		return models.User{}, fmt.Errorf("build query: %w", err)
+		return nil, fmt.Errorf("build query: %w", err)
 	}
 
-	var user models.User
+	user := &models.User{}
 	err = db.QueryRow(ctx, sql, args...).Scan(
 		&user.ID,
 		&user.Name,
@@ -145,9 +181,9 @@ func (r *UserRepository) SetActive(ctx context.Context, db DBTX, id string, acti
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return models.User{}, apperrors.ErrNotFound
+			return nil, apperrors.ErrNotFound
 		}
-		return models.User{}, fmt.Errorf("execute query and scan result: %w", err)
+		return nil, fmt.Errorf("execute query and scan result: %w", err)
 	}
 
 	return user, nil
