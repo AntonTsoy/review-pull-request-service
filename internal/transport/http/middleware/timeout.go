@@ -8,23 +8,23 @@ import (
 )
 
 func Timeout(duration time.Duration) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(c.Context(), duration)
-		defer cancel()
+    return func(c *fiber.Ctx) error {
+        ctx, cancel := context.WithTimeout(c.Context(), duration)
+        defer cancel()
+		
+        c.SetUserContext(ctx)
 
-		c.SetUserContext(ctx)
+        err := c.Next()
 
-		done := make(chan error, 1)
+        if ctx.Err() == context.DeadlineExceeded {
+            return c.Status(fiber.StatusRequestTimeout).JSON(fiber.Map{
+                "error": fiber.Map{
+                    "code":    "REQUEST_TIMEOUT",
+                    "message": "request executed too long",
+                },
+            })
+        }
 
-		go func() {
-			done <- c.Next()
-		}()
-
-		select {
-		case err := <-done:
-			return err
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
+        return err
+    }
 }
