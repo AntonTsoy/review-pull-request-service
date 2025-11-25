@@ -40,7 +40,7 @@ func (db *Database) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.T
 }
 
 func (db *Database) HealthCheck(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	return db.pool.Ping(ctx)
