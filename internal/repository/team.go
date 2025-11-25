@@ -42,6 +42,30 @@ func (r *TeamRepository) Create(ctx context.Context, db DBTX, name string) (int,
 	return id, nil
 }
 
+func (r *TeamRepository) GetByID(ctx context.Context, db DBTX, id int) (string, error) {
+	sql, args, err := r.builder.
+		Select("name").
+		From("teams").
+		Where(squirrel.Eq{"id": id}).
+		Limit(1).
+		ToSql()
+
+	if err != nil {
+		return "", fmt.Errorf("build query: %w", err)
+	}
+
+	var name string
+	err = db.QueryRow(ctx, sql, args...).Scan(&name)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", apperrors.ErrNotFound
+		}
+		return "", fmt.Errorf("execute query: %w", err)
+	}
+
+	return name, nil
+}
+
 func (r *TeamRepository) GetByName(ctx context.Context, db DBTX, name string) (int, error) {
 	sql, args, err := r.builder.
 		Select("id").

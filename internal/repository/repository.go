@@ -16,11 +16,15 @@ type DBTX interface {
 type Repository struct {
 	TeamRepository *TeamRepository
 	UserRepository *UserRepository
+	ReviewRepository *ReviewRepository
+	PullRequestRepository *PullRequestRepository
 }
 
 func NewRepository() *Repository {
 	return &Repository{
 		TeamRepository: newTeamRepository(),
 		UserRepository: newUserRepository(),
+		ReviewRepository: newReviewRepository(),
+		PullRequestRepository: newPullRequestRepository(),
 	}
 }

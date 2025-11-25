@@ -11,3 +11,4 @@ func newTeamHandler(teamService *service.TeamService) *TeamHanler {
 		teamService: teamService,
 	}
 }
+

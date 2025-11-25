@@ -202,5 +202,5 @@ func changeAvailableReviewer(candidates []api.TeamMember, assignedReviewers []st
 		return newReviewer, nil
 	}
 
-	return "", nil
+	return "", nil // заглушка, чтобы gopls не ругался
 }
